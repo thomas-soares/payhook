@@ -1,0 +1,17 @@
+{
+  "name": "payhook",
+  "version": "0.1.0",
+  "private": true,
+  "packageManager": "pnpm@10.33.2",
+  "scripts": {
+    "frontend:dev": "pnpm --filter payhook-frontend dev",
+    "frontend:build": "pnpm --filter payhook-frontend build",
+    "lint": "pnpm --filter payhook-frontend lint",
+    "lint:fix": "pnpm --filter payhook-frontend lint:fix",
+    "format": "prettier . --write",
+    "format:check": "prettier . --check"
+  },
+  "devDependencies": {
+    "prettier": "^3.6.2"
+  }
+}

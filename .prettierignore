@@ -1,0 +1,16 @@
+bin/
+obj/
+
+node_modules/
+.pnpm-store/
+.next/
+out/
+coverage/
+
+*.sln
+*.csproj
+*.csproj.user
+*.suo
+
+postgres_data/
+pgadmin_data/
