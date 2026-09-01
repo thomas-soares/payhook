@@ -6,7 +6,9 @@ using Payhook.Api.Models;
 
 namespace Payhook.Api.Services;
 
-public sealed class PaymentWebhookService(ApplicationDbContext dbContext)
+public sealed class PaymentWebhookService(
+    ApplicationDbContext dbContext,
+    IPaymentProcessingQueue processingQueue)
 {
     private const string UniqueViolationSqlState = "23505";
 
@@ -23,14 +25,16 @@ public sealed class PaymentWebhookService(ApplicationDbContext dbContext)
             return PaymentWebhookResult.Duplicate;
         }
 
-        dbContext.RawEvents.Add(new RawEvent
+        var rawEvent = new RawEvent
         {
             Id = Guid.NewGuid(),
             TransactionId = request.TransactionId,
             PayloadJson = payloadJson,
             ReceivedAt = DateTimeOffset.UtcNow,
             ProcessingStatus = ProcessingStatus.Pending
-        });
+        };
+
+        dbContext.RawEvents.Add(rawEvent);
 
         try
         {
@@ -40,6 +44,8 @@ public sealed class PaymentWebhookService(ApplicationDbContext dbContext)
         {
             return PaymentWebhookResult.Duplicate;
         }
+
+        await processingQueue.EnqueueAsync(rawEvent.Id, cancellationToken);
 
         return PaymentWebhookResult.Accepted;
     }
