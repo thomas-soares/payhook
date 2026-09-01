@@ -17,6 +17,7 @@ builder.Services.AddOptions<WebhookSecurityOptions>()
     .Bind(builder.Configuration.GetSection(WebhookSecurityOptions.SectionName))
     .ValidateDataAnnotations()
     .ValidateOnStart();
+builder.Services.AddScoped<PaymentWebhookService>();
 builder.Services.AddSingleton<WebhookSecurityService>();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
