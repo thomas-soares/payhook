@@ -38,6 +38,10 @@ public sealed class RawEventConfiguration : IEntityTypeConfiguration<RawEvent>
             .HasMaxLength(20)
             .IsRequired();
 
+        builder.Property(rawEvent => rawEvent.ProcessingError)
+            .HasColumnName("processing_error")
+            .HasMaxLength(1000);
+
         builder.HasIndex(rawEvent => rawEvent.TransactionId)
             .IsUnique()
             .HasDatabaseName("ix_raw_events_transaction_id");

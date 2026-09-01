@@ -1,6 +1,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Payhook.Api.Data;
 using Payhook.Api.Models;
@@ -10,9 +11,10 @@ using Payhook.Api.Models;
 namespace Payhook.Api.Migrations;
 
 [DbContext(typeof(ApplicationDbContext))]
-partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+[Migration("20260901190000_AddRawEventProcessingError")]
+partial class AddRawEventProcessingError
 {
-    protected override void BuildModel(ModelBuilder modelBuilder)
+    protected override void BuildTargetModel(ModelBuilder modelBuilder)
     {
 #pragma warning disable 612, 618
         modelBuilder
@@ -66,16 +68,16 @@ partial class ApplicationDbContextModelSnapshot : ModelSnapshot
                 .HasColumnType("jsonb")
                 .HasColumnName("payload_json");
 
+            builder.Property<string>("ProcessingError")
+                .HasMaxLength(1000)
+                .HasColumnType("character varying(1000)")
+                .HasColumnName("processing_error");
+
             builder.Property<ProcessingStatus>("ProcessingStatus")
                 .HasConversion<string>()
                 .HasMaxLength(20)
                 .HasColumnType("character varying(20)")
                 .HasColumnName("processing_status");
-
-            builder.Property<string>("ProcessingError")
-                .HasMaxLength(1000)
-                .HasColumnType("character varying(1000)")
-                .HasColumnName("processing_error");
 
             builder.Property<DateTimeOffset>("ReceivedAt")
                 .ValueGeneratedOnAdd()
