@@ -49,6 +49,10 @@ pnpm format:check
 pnpm format
 ```
 
+```bash
+dotnet test backend/tests/Payhook.Api.Tests
+```
+
 ## URLs
 
 - Backend: `http://localhost:5000`
