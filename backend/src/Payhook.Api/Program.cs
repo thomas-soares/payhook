@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi;
 using Payhook.Api.Data;
@@ -8,7 +9,11 @@ var builder = WebApplication.CreateBuilder(args);
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
     ?? throw new InvalidOperationException("Default database connection string is not configured.");
 
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+    });
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
 {
     options.UseNpgsql(connectionString);
@@ -24,6 +29,7 @@ builder.Services.AddOptions<PaymentProcessingOptions>()
 builder.Services.AddSingleton<IPaymentProcessingQueue, PaymentProcessingQueue>();
 builder.Services.AddScoped<PaymentWebhookService>();
 builder.Services.AddScoped<PaymentEventProcessor>();
+builder.Services.AddScoped<PaymentQueryService>();
 builder.Services.AddSingleton<WebhookSecurityService>();
 builder.Services.AddHostedService<PaymentProcessingWorker>();
 builder.Services.AddEndpointsApiExplorer();
