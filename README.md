@@ -53,5 +53,6 @@ pnpm format
 
 - Backend: `http://localhost:5000`
 - Health check: `http://localhost:5000/health`
+- Swagger UI: `http://localhost:5000/swagger`
 - Frontend: `http://localhost:3000`
 - pgAdmin: `http://localhost:5050`
