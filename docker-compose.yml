@@ -39,6 +39,7 @@ services:
       ASPNETCORE_ENVIRONMENT: Development
       ASPNETCORE_URLS: http://+:8080
       ConnectionStrings__DefaultConnection: Host=postgres;Port=5432;Database=${POSTGRES_DB:-payhook};Username=${POSTGRES_USER:-payhook};Password=${POSTGRES_PASSWORD:-payhook}
+      WebhookSecurity__SignatureSecret: ${WEBHOOK_SIGNATURE_SECRET:-dev-payhook-secret}
     ports:
       - "${BACKEND_PORT:-5000}:8080"
     depends_on:
