@@ -6,8 +6,10 @@ Payment webhook service with a .NET 8 backend, Next.js frontend, and local Postg
 
 ```text
 payhook/
-  backend/   # Web API .NET 8
-  frontend/  # Next.js + TypeScript
+  backend/
+    src/
+      Payhook.Api/  # Web API .NET 8
+  frontend/         # Next.js + TypeScript
 ```
 
 ## Requirements

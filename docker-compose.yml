@@ -32,7 +32,7 @@ services:
 
   backend:
     build:
-      context: ./backend
+      context: ./backend/src/Payhook.Api
       dockerfile: Dockerfile
     container_name: payhook-backend
     environment:
