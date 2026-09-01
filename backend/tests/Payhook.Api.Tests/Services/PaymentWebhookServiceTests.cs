@@ -14,7 +14,8 @@ public sealed class PaymentWebhookServiceTests
     public async Task ReceiveAsyncShouldStoreRawEvent()
     {
         await using var context = CreateContext();
-        var service = new PaymentWebhookService(context);
+        var queue = new FakePaymentProcessingQueue();
+        var service = new PaymentWebhookService(context, queue);
         var request = CreateRequest();
         const string payloadJson = """
             {"transaction_id":"txn_001","contract_id":"contract_001","amount":10.50,"payment_date":"2026-09-01T00:00:00Z","status":"Paid"}
@@ -27,13 +28,15 @@ public sealed class PaymentWebhookServiceTests
             rawEvent.TransactionId == request.TransactionId
             && rawEvent.PayloadJson == payloadJson
             && rawEvent.ProcessingStatus == ProcessingStatus.Pending);
+        queue.EnqueuedRawEventIds.Should().ContainSingle();
     }
 
     [Fact]
     public async Task ReceiveAsyncShouldNotStoreDuplicateTransaction()
     {
         await using var context = CreateContext();
-        var service = new PaymentWebhookService(context);
+        var queue = new FakePaymentProcessingQueue();
+        var service = new PaymentWebhookService(context, queue);
         var request = CreateRequest();
 
         await service.ReceiveAsync(request, "{}", CancellationToken.None);
@@ -42,6 +45,7 @@ public sealed class PaymentWebhookServiceTests
         result.Should().Be(PaymentWebhookResult.Duplicate);
         context.RawEvents.Should().ContainSingle(rawEvent =>
             rawEvent.TransactionId == request.TransactionId);
+        queue.EnqueuedRawEventIds.Should().ContainSingle();
     }
 
     private static ApplicationDbContext CreateContext()
@@ -63,5 +67,27 @@ public sealed class PaymentWebhookServiceTests
             PaymentDate = DateTimeOffset.Parse("2026-09-01T00:00:00Z"),
             Status = "Paid"
         };
+    }
+
+    private sealed class FakePaymentProcessingQueue : IPaymentProcessingQueue
+    {
+        public List<Guid> EnqueuedRawEventIds { get; } = [];
+
+        public ValueTask EnqueueAsync(Guid rawEventId, CancellationToken cancellationToken)
+        {
+            EnqueuedRawEventIds.Add(rawEventId);
+
+            return ValueTask.CompletedTask;
+        }
+
+        public ValueTask<bool> WaitToReadAsync(CancellationToken cancellationToken)
+        {
+            throw new NotSupportedException();
+        }
+
+        public bool TryDequeue(out Guid rawEventId)
+        {
+            throw new NotSupportedException();
+        }
     }
 }

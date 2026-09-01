@@ -19,6 +19,10 @@ public sealed class PayhookApiFactory : WebApplicationFactory<Program>
             configurationBuilder.AddInMemoryCollection(new Dictionary<string, string?>
             {
                 ["WebhookSecurity:SignatureSecret"] = "test-secret",
+                ["PaymentProcessing:ProcessingDelay"] = "00:00:00",
+                ["PaymentProcessing:QueueCapacity"] = "1000",
+                ["PaymentProcessing:PendingScanInterval"] = "00:00:01",
+                ["PaymentProcessing:PendingBatchSize"] = "50",
                 ["ConnectionStrings:DefaultConnection"] = "Host=localhost;Database=payhook;Username=payhook;Password=payhook"
             });
         });
