@@ -29,6 +29,7 @@ public sealed class PaymentWebhookService(
         {
             Id = Guid.NewGuid(),
             TransactionId = request.TransactionId,
+            ContractId = request.ContractId,
             PayloadJson = payloadJson,
             ReceivedAt = DateTimeOffset.UtcNow,
             ProcessingStatus = ProcessingStatus.Pending

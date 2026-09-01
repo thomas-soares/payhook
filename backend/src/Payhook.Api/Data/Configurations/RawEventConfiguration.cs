@@ -21,6 +21,11 @@ public sealed class RawEventConfiguration : IEntityTypeConfiguration<RawEvent>
             .HasMaxLength(100)
             .IsRequired();
 
+        builder.Property(rawEvent => rawEvent.ContractId)
+            .HasColumnName("contract_id")
+            .HasMaxLength(100)
+            .IsRequired();
+
         builder.Property(rawEvent => rawEvent.PayloadJson)
             .HasColumnName("payload_json")
             .HasColumnType("jsonb")
@@ -45,5 +50,8 @@ public sealed class RawEventConfiguration : IEntityTypeConfiguration<RawEvent>
         builder.HasIndex(rawEvent => rawEvent.TransactionId)
             .IsUnique()
             .HasDatabaseName("ix_raw_events_transaction_id");
+
+        builder.HasIndex(rawEvent => rawEvent.ContractId)
+            .HasDatabaseName("ix_raw_events_contract_id");
     }
 }

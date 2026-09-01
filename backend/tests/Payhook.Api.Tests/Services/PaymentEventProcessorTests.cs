@@ -20,6 +20,7 @@ public sealed class PaymentEventProcessorTests
         {
             Id = Guid.NewGuid(),
             TransactionId = "txn_001",
+            ContractId = "contract_001",
             PayloadJson = """
                 {"transaction_id":"txn_001","contract_id":"contract_001","amount":10.50,"payment_date":"2026-09-01T00:00:00Z","status":"Paid"}
                 """,
@@ -48,6 +49,7 @@ public sealed class PaymentEventProcessorTests
         {
             Id = Guid.NewGuid(),
             TransactionId = "txn_001",
+            ContractId = "contract_001",
             PayloadJson = "{",
             ReceivedAt = DateTimeOffset.UtcNow,
             ProcessingStatus = ProcessingStatus.Pending
@@ -120,6 +122,7 @@ public sealed class PaymentEventProcessorTests
         {
             Id = id,
             TransactionId = transactionId,
+            ContractId = contractId,
             PayloadJson = $$"""
                 {"transaction_id":"{{transactionId}}","contract_id":"{{contractId}}","amount":10.50,"payment_date":"2026-09-01T00:00:00Z","status":"Paid"}
                 """,

@@ -6,6 +6,8 @@ public sealed class RawEvent
 
     public required string TransactionId { get; set; }
 
+    public required string ContractId { get; set; }
+
     public required string PayloadJson { get; set; }
 
     public DateTimeOffset ReceivedAt { get; set; }
