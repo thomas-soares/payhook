@@ -53,6 +53,14 @@ pnpm format
 dotnet test backend/tests/Payhook.Api.Tests
 ```
 
+## Background Processing
+
+The API stores each accepted webhook in PostgreSQL before returning `202 Accepted`. New events are pushed to a bounded in-memory `Channel`, and a hosted worker processes them outside the request path after the configured delay.
+
+PostgreSQL remains the source of truth: the worker also scans pending events periodically, so events saved before an application restart can still be processed.
+
+For production, a durable external broker such as RabbitMQ or Azure Service Bus would be preferred. Those services provide stronger delivery guarantees, independent worker scaling, dead-letter handling, and better operational visibility. The in-memory channel keeps this local assessment lightweight while still demonstrating asynchronous processing and backpressure.
+
 ## URLs
 
 - Backend: `http://localhost:5000`
