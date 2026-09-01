@@ -40,6 +40,10 @@ services:
       ASPNETCORE_URLS: http://+:8080
       ConnectionStrings__DefaultConnection: Host=postgres;Port=5432;Database=${POSTGRES_DB:-payhook};Username=${POSTGRES_USER:-payhook};Password=${POSTGRES_PASSWORD:-payhook}
       WebhookSecurity__SignatureSecret: ${WEBHOOK_SIGNATURE_SECRET:-dev-payhook-secret}
+      PaymentProcessing__ProcessingDelay: ${PAYMENT_PROCESSING_DELAY:-00:00:02}
+      PaymentProcessing__QueueCapacity: ${PAYMENT_QUEUE_CAPACITY:-1000}
+      PaymentProcessing__PendingScanInterval: ${PAYMENT_PENDING_SCAN_INTERVAL:-00:00:10}
+      PaymentProcessing__PendingBatchSize: ${PAYMENT_PENDING_BATCH_SIZE:-50}
     ports:
       - "${BACKEND_PORT:-5000}:8080"
     depends_on:

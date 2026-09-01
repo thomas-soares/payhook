@@ -17,8 +17,15 @@ builder.Services.AddOptions<WebhookSecurityOptions>()
     .Bind(builder.Configuration.GetSection(WebhookSecurityOptions.SectionName))
     .ValidateDataAnnotations()
     .ValidateOnStart();
+builder.Services.AddOptions<PaymentProcessingOptions>()
+    .Bind(builder.Configuration.GetSection(PaymentProcessingOptions.SectionName))
+    .ValidateDataAnnotations()
+    .ValidateOnStart();
+builder.Services.AddSingleton<IPaymentProcessingQueue, PaymentProcessingQueue>();
 builder.Services.AddScoped<PaymentWebhookService>();
+builder.Services.AddScoped<PaymentEventProcessor>();
 builder.Services.AddSingleton<WebhookSecurityService>();
+builder.Services.AddHostedService<PaymentProcessingWorker>();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
 {
