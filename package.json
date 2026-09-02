@@ -8,6 +8,7 @@
     "frontend:build": "pnpm --filter payhook-frontend build",
     "lint": "pnpm --filter payhook-frontend lint",
     "lint:fix": "pnpm --filter payhook-frontend lint:fix",
+    "test:frontend": "pnpm --filter payhook-frontend test",
     "format": "prettier . --write",
     "format:check": "prettier . --check"
   },
