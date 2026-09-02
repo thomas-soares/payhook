@@ -59,7 +59,13 @@ The API stores each accepted webhook in PostgreSQL before returning `202 Accepte
 
 PostgreSQL remains the source of truth: the worker also scans pending events periodically, so events saved before an application restart can still be processed.
 
-For production, a durable external broker such as RabbitMQ or Azure Service Bus would be preferred. Those services provide stronger delivery guarantees, independent worker scaling, dead-letter handling, and better operational visibility. The in-memory channel keeps this local assessment lightweight while still demonstrating asynchronous processing and backpressure.
+For production, a durable external broker such as RabbitMQ or Azure Service Bus would be preferred. Those services provide stronger delivery guarantees, independent worker scaling, dead-letter handling, and better operational visibility. The in-memory channel keeps local development lightweight while still supporting asynchronous processing and backpressure.
+
+## Frontend Dashboard
+
+The dashboard lists received payments, supports filters by processing status and contract ID, and refreshes automatically every 5 seconds with TanStack Query polling. This is the current real-time behavior; it is polling, not WebSocket or SignalR.
+
+The Next.js frontend calls its local `/api/payments` route, which proxies requests to the backend configured by `PAYHOOK_API_BASE_URL` to avoid browser CORS issues during local development.
 
 ## URLs
 
