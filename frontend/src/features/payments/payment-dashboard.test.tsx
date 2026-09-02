@@ -1,24 +1,13 @@
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { http, HttpResponse } from "msw";
 import { describe, expect, it } from "vitest";
+import { renderWithQueryClient } from "@/test/render";
 import { server } from "@/test/server";
 import { PaymentDashboard } from "./payment-dashboard";
+import { createPaymentSummary } from "./test-data";
 
 function renderDashboard() {
-  const queryClient = new QueryClient({
-    defaultOptions: {
-      queries: {
-        retry: false
-      }
-    }
-  });
-
-  return render(
-    <QueryClientProvider client={queryClient}>
-      <PaymentDashboard pollIntervalMs={false} />
-    </QueryClientProvider>
-  );
+  return renderWithQueryClient(<PaymentDashboard pollIntervalMs={false} />);
 }
 
 describe("PaymentDashboard", () => {
@@ -27,17 +16,7 @@ describe("PaymentDashboard", () => {
       http.get("*/api/payments", () =>
         HttpResponse.json({
           items: [
-            {
-              id: "b4c9da61-6fa9-4c47-9a12-62f73c87a199",
-              transactionId: "tx-001",
-              contractId: "contract-001",
-              processingStatus: "Processed",
-              receivedAt: "2026-09-01T18:00:00Z",
-              paymentStatus: "Sucesso",
-              amount: 199.9,
-              paymentDate: "2026-09-01T18:00:00Z",
-              processingError: null
-            }
+            createPaymentSummary()
           ],
           page: 1,
           pageSize: 20,
@@ -106,22 +85,31 @@ describe("PaymentDashboard", () => {
     expect(await screen.findByText("Nenhum pagamento encontrado.")).toBeInTheDocument();
   });
 
+  it("shows an alert when loading payments fails", async () => {
+    server.use(http.get("*/api/payments", () => HttpResponse.json({}, { status: 502 })));
+
+    renderDashboard();
+
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      "Nao foi possivel carregar os pagamentos."
+    );
+  });
+
   it("shows a visual error indicator for failed payments", async () => {
     server.use(
       http.get("*/api/payments", () =>
         HttpResponse.json({
           items: [
-            {
-              id: "dd974fab-914d-4081-83a4-108a207b2fe1",
-              transactionId: "tx-error",
-              contractId: "contract-err",
-              processingStatus: "Failed",
-              receivedAt: "2026-09-01T18:00:00Z",
-              paymentStatus: null,
+            createPaymentSummary({
               amount: null,
+              contractId: "contract-err",
+              id: "dd974fab-914d-4081-83a4-108a207b2fe1",
               paymentDate: null,
-              processingError: "Invalid status"
-            }
+              paymentStatus: null,
+              processingError: "Invalid status",
+              transactionId: "tx-error",
+              processingStatus: "Failed"
+            })
           ],
           page: 1,
           pageSize: 20,
