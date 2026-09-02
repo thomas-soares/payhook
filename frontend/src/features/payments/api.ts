@@ -1,4 +1,4 @@
-import type { PaginatedPayments, PaymentFilters } from "./types";
+import type { PaginatedPayments, PaymentDetail, PaymentFilters } from "./types";
 
 export async function fetchPayments(filters: PaymentFilters): Promise<PaginatedPayments> {
   const searchParams = new URLSearchParams({
@@ -27,4 +27,18 @@ export async function fetchPayments(filters: PaymentFilters): Promise<PaginatedP
   }
 
   return (await response.json()) as PaginatedPayments;
+}
+
+export async function fetchPaymentDetail(paymentId: string): Promise<PaymentDetail> {
+  const response = await fetch(`/api/payments/${paymentId}`, {
+    headers: {
+      Accept: "application/json"
+    }
+  });
+
+  if (!response.ok) {
+    throw new Error("Nao foi possivel carregar o detalhe do pagamento.");
+  }
+
+  return (await response.json()) as PaymentDetail;
 }

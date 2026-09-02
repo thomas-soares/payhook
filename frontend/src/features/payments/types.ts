@@ -14,6 +14,11 @@ export type PaymentSummary = {
   processingError: string | null;
 };
 
+export type PaymentDetail = PaymentSummary & {
+  payloadJson: string;
+  updatedAt: string | null;
+};
+
 export type PaginatedPayments = {
   items: PaymentSummary[];
   page: number;
