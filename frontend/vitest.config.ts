@@ -17,7 +17,13 @@ export default defineConfig({
       ],
       include: ["src/components/**/*.{ts,tsx}", "src/features/**/*.{ts,tsx}", "src/lib/**/*.{ts,tsx}"],
       provider: "v8",
-      reporter: ["text", "html", "lcov"]
+      reporter: ["text", "html", "lcov"],
+      thresholds: {
+        branches: 80,
+        functions: 85,
+        lines: 85,
+        statements: 85
+      }
     },
     environment: "jsdom",
     globals: true,
