@@ -5,8 +5,8 @@ export default function Home() {
         <p className="eyebrow">Payhook</p>
         <h1>Payment dashboard</h1>
         <p>
-          Initial administration dashboard scaffold. Listing, filters, and
-          error states are not implemented yet.
+          Initial administration dashboard scaffold. Listing, filters, and error states are not
+          implemented yet.
         </p>
       </section>
     </main>
