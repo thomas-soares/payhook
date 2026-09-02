@@ -5,10 +5,12 @@ import type { PaymentSummary } from "./types";
 
 type PaymentTableProps = {
   isLoading: boolean;
+  onSelectError: (paymentId: string) => void;
   payments: PaymentSummary[];
+  viewedErrorIds: Set<string>;
 };
 
-export function PaymentTable({ isLoading, payments }: PaymentTableProps) {
+export function PaymentTable({ isLoading, onSelectError, payments, viewedErrorIds }: PaymentTableProps) {
   if (isLoading || payments.length === 0) {
     return (
       <TableState
@@ -30,6 +32,7 @@ export function PaymentTable({ isLoading, payments }: PaymentTableProps) {
             <th>Valor</th>
             <th>Pagamento</th>
             <th>Recebido em</th>
+            <th>Detalhe</th>
           </tr>
         </thead>
         <tbody>
@@ -43,6 +46,21 @@ export function PaymentTable({ isLoading, payments }: PaymentTableProps) {
               <td>{formatAmount(payment.amount)}</td>
               <td>{payment.paymentStatus ?? "--"}</td>
               <td>{formatDate(payment.receivedAt)}</td>
+              <td>
+                {payment.processingStatus === "Failed" ? (
+                  <button
+                    className={
+                      viewedErrorIds.has(payment.id) ? "detail-button viewed" : "detail-button"
+                    }
+                    onClick={() => onSelectError(payment.id)}
+                    type="button"
+                  >
+                    {viewedErrorIds.has(payment.id) ? "Visto" : "Ver erro"}
+                  </button>
+                ) : (
+                  "--"
+                )}
+              </td>
             </tr>
           ))}
         </tbody>
