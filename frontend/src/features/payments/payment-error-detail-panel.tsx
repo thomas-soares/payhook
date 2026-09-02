@@ -22,8 +22,8 @@ export function PaymentErrorDetailPanel({ onClose, paymentId }: PaymentErrorDeta
   }
 
   return (
-    <div className="detail-backdrop" role="presentation">
-      <aside aria-label="Detalhe do erro" className="detail-panel">
+    <div className="detail-backdrop">
+      <aside aria-label="Detalhe do erro" aria-modal="true" className="detail-panel" role="dialog">
         <header className="detail-header">
           <div>
             <p className="eyebrow">Erro</p>
