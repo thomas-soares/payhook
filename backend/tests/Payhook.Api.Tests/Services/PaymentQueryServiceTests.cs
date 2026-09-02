@@ -79,6 +79,63 @@ public sealed class PaymentQueryServiceTests
     }
 
     [Fact]
+    public async Task GetPaymentsAsyncShouldReturnRejectedRawEventsWithoutIdentifiers()
+    {
+        await using var context = CreateContext();
+        var rawEvent = new RawEvent
+        {
+            Id = Guid.NewGuid(),
+            TransactionId = null,
+            ContractId = null,
+            PayloadJson = "{",
+            ReceivedAt = DateTimeOffset.UtcNow,
+            ProcessingStatus = ProcessingStatus.Failed,
+            ProcessingError = "Invalid JSON payload.",
+            IsProcessable = false
+        };
+        context.RawEvents.Add(rawEvent);
+        await context.SaveChangesAsync(TestContext.Current.CancellationToken);
+        var service = new PaymentQueryService(context);
+
+        var response = await service.GetPaymentsAsync(
+            new() { Status = ProcessingStatus.Failed },
+            TestContext.Current.CancellationToken);
+
+        response.Items.Should().ContainSingle();
+        response.Items[0].TransactionId.Should().BeNull();
+        response.Items[0].ContractId.Should().BeNull();
+        response.Items[0].ProcessingError.Should().Be("Invalid JSON payload.");
+    }
+
+    [Fact]
+    public async Task GetPaymentAsyncShouldReturnRejectedRawEventWithoutIdentifiers()
+    {
+        await using var context = CreateContext();
+        var rawEvent = new RawEvent
+        {
+            Id = Guid.NewGuid(),
+            TransactionId = null,
+            ContractId = null,
+            PayloadJson = "{",
+            ReceivedAt = DateTimeOffset.UtcNow,
+            ProcessingStatus = ProcessingStatus.Failed,
+            ProcessingError = "Invalid JSON payload.",
+            IsProcessable = false
+        };
+        context.RawEvents.Add(rawEvent);
+        await context.SaveChangesAsync(TestContext.Current.CancellationToken);
+        var service = new PaymentQueryService(context);
+
+        var response = await service.GetPaymentAsync(rawEvent.Id, TestContext.Current.CancellationToken);
+
+        response.Should().NotBeNull();
+        response!.TransactionId.Should().BeNull();
+        response.ContractId.Should().BeNull();
+        response.PayloadJson.Should().Be("{");
+        response.ProcessingError.Should().Be("Invalid JSON payload.");
+    }
+
+    [Fact]
     public async Task GetPaymentAsyncShouldReturnNullWhenPaymentDoesNotExist()
     {
         await using var context = CreateContext();

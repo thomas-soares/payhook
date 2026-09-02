@@ -6,9 +6,9 @@ public sealed class PaymentDetailResponse
 {
     public Guid Id { get; init; }
 
-    public required string TransactionId { get; init; }
+    public string? TransactionId { get; init; }
 
-    public required string ContractId { get; init; }
+    public string? ContractId { get; init; }
 
     public ProcessingStatus ProcessingStatus { get; init; }
 

@@ -21,7 +21,7 @@ public sealed class PaymentEventProcessor(
         var rawEvent = await dbContext.RawEvents
             .SingleOrDefaultAsync(candidate => candidate.Id == rawEventId, cancellationToken);
 
-        if (rawEvent is null || rawEvent.ProcessingStatus != ProcessingStatus.Pending)
+        if (rawEvent is null || !rawEvent.IsProcessable || rawEvent.ProcessingStatus != ProcessingStatus.Pending)
         {
             return;
         }
@@ -64,6 +64,7 @@ public sealed class PaymentEventProcessor(
     {
         var rawEventIds = await dbContext.RawEvents
             .Where(rawEvent => rawEvent.ProcessingStatus == ProcessingStatus.Pending)
+            .Where(rawEvent => rawEvent.IsProcessable)
             .OrderBy(rawEvent => rawEvent.ReceivedAt)
             .Take(batchSize)
             .Select(rawEvent => rawEvent.Id)

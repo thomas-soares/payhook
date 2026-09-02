@@ -1,6 +1,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Payhook.Api.Data;
 using Payhook.Api.Models;
@@ -10,9 +11,10 @@ using Payhook.Api.Models;
 namespace Payhook.Api.Migrations;
 
 [DbContext(typeof(ApplicationDbContext))]
-partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+[Migration("20260902100000_StoreRejectedRawEvents")]
+partial class StoreRejectedRawEvents
 {
-    protected override void BuildModel(ModelBuilder modelBuilder)
+    protected override void BuildTargetModel(ModelBuilder modelBuilder)
     {
 #pragma warning disable 612, 618
         modelBuilder

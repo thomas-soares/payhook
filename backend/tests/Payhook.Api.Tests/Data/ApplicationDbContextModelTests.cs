@@ -9,7 +9,7 @@ namespace Payhook.Api.Tests.Data;
 public sealed class ApplicationDbContextModelTests
 {
     [Fact]
-    public void RawEventsShouldUseTransactionIdAsUniqueIdempotencyKey()
+    public void RawEventsShouldUseNullableTransactionIdAsFilteredUniqueIdempotencyKey()
     {
         using var context = CreateContext();
         var entityType = context.Model.FindEntityType(typeof(RawEvent));
@@ -21,11 +21,13 @@ public sealed class ApplicationDbContextModelTests
 
         index.Should().NotBeNull();
         index!.IsUnique.Should().BeTrue();
+        index.GetFilter().Should().Be("transaction_id IS NOT NULL");
         index.GetDatabaseName().Should().Be("ix_raw_events_transaction_id");
+        transactionId!.IsNullable.Should().BeTrue();
     }
 
     [Fact]
-    public void RawEventsShouldStorePayloadAsJsonb()
+    public void RawEventsShouldStorePayloadAsText()
     {
         using var context = CreateContext();
         var entityType = context.Model.FindEntityType(typeof(RawEvent));
@@ -35,7 +37,35 @@ public sealed class ApplicationDbContextModelTests
         var payload = entityType!.FindProperty(nameof(RawEvent.PayloadJson));
 
         payload.Should().NotBeNull();
-        payload!.GetColumnType().Should().Be("jsonb");
+        payload!.GetColumnType().Should().Be("text");
+    }
+
+    [Fact]
+    public void RawEventsShouldAllowMissingContractId()
+    {
+        using var context = CreateContext();
+        var entityType = context.Model.FindEntityType(typeof(RawEvent));
+
+        entityType.Should().NotBeNull();
+
+        var contractId = entityType!.FindProperty(nameof(RawEvent.ContractId));
+
+        contractId.Should().NotBeNull();
+        contractId!.IsNullable.Should().BeTrue();
+    }
+
+    [Fact]
+    public void RawEventsShouldTrackWhetherTheyCanBeProcessed()
+    {
+        using var context = CreateContext();
+        var entityType = context.Model.FindEntityType(typeof(RawEvent));
+
+        entityType.Should().NotBeNull();
+
+        var isProcessable = entityType!.FindProperty(nameof(RawEvent.IsProcessable));
+
+        isProcessable.Should().NotBeNull();
+        isProcessable!.GetDefaultValue().Should().Be(true);
     }
 
     [Fact]

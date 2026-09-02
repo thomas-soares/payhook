@@ -32,7 +32,8 @@ public sealed class PaymentWebhookService(
             ContractId = request.ContractId,
             PayloadJson = payloadJson,
             ReceivedAt = DateTimeOffset.UtcNow,
-            ProcessingStatus = ProcessingStatus.Pending
+            ProcessingStatus = ProcessingStatus.Pending,
+            IsProcessable = true
         };
 
         dbContext.RawEvents.Add(rawEvent);
@@ -49,6 +50,37 @@ public sealed class PaymentWebhookService(
         await processingQueue.EnqueueAsync(rawEvent.Id, cancellationToken);
 
         return PaymentWebhookResult.Accepted;
+    }
+
+    public async Task StoreRejectedAsync(
+        string payloadJson,
+        string processingError,
+        string? transactionId,
+        string? contractId,
+        CancellationToken cancellationToken)
+    {
+        var rawEvent = new RawEvent
+        {
+            Id = Guid.NewGuid(),
+            TransactionId = string.IsNullOrWhiteSpace(transactionId) ? null : transactionId,
+            ContractId = string.IsNullOrWhiteSpace(contractId) ? null : contractId,
+            PayloadJson = payloadJson,
+            ReceivedAt = DateTimeOffset.UtcNow,
+            ProcessingStatus = ProcessingStatus.Failed,
+            ProcessingError = processingError,
+            IsProcessable = false
+        };
+
+        dbContext.RawEvents.Add(rawEvent);
+
+        try
+        {
+            await dbContext.SaveChangesAsync(cancellationToken);
+        }
+        catch (DbUpdateException exception) when (IsUniqueViolation(exception))
+        {
+            dbContext.Entry(rawEvent).State = EntityState.Detached;
+        }
     }
 
     private static bool IsUniqueViolation(DbUpdateException exception)

@@ -4,9 +4,9 @@ public sealed class RawEvent
 {
     public Guid Id { get; set; }
 
-    public required string TransactionId { get; set; }
+    public string? TransactionId { get; set; }
 
-    public required string ContractId { get; set; }
+    public string? ContractId { get; set; }
 
     public required string PayloadJson { get; set; }
 
@@ -15,4 +15,6 @@ public sealed class RawEvent
     public ProcessingStatus ProcessingStatus { get; set; } = ProcessingStatus.Pending;
 
     public string? ProcessingError { get; set; }
+
+    public bool IsProcessable { get; set; } = true;
 }

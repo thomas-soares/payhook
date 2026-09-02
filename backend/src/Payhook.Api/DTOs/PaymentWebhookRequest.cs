@@ -7,11 +7,11 @@ public sealed class PaymentWebhookRequest
 {
     [Required]
     [JsonPropertyName("transaction_id")]
-    public required string TransactionId { get; init; }
+    public string TransactionId { get; init; } = string.Empty;
 
     [Required]
     [JsonPropertyName("contract_id")]
-    public required string ContractId { get; init; }
+    public string ContractId { get; init; } = string.Empty;
 
     [Range(typeof(decimal), "0.01", "79228162514264337593543950335")]
     [JsonPropertyName("amount")]
@@ -22,5 +22,5 @@ public sealed class PaymentWebhookRequest
 
     [Required]
     [JsonPropertyName("status")]
-    public required string Status { get; init; }
+    public string Status { get; init; } = string.Empty;
 }

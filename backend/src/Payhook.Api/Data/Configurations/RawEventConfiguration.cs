@@ -18,17 +18,15 @@ public sealed class RawEventConfiguration : IEntityTypeConfiguration<RawEvent>
 
         builder.Property(rawEvent => rawEvent.TransactionId)
             .HasColumnName("transaction_id")
-            .HasMaxLength(100)
-            .IsRequired();
+            .HasMaxLength(100);
 
         builder.Property(rawEvent => rawEvent.ContractId)
             .HasColumnName("contract_id")
-            .HasMaxLength(100)
-            .IsRequired();
+            .HasMaxLength(100);
 
         builder.Property(rawEvent => rawEvent.PayloadJson)
             .HasColumnName("payload_json")
-            .HasColumnType("jsonb")
+            .HasColumnType("text")
             .IsRequired();
 
         builder.Property(rawEvent => rawEvent.ReceivedAt)
@@ -47,8 +45,14 @@ public sealed class RawEventConfiguration : IEntityTypeConfiguration<RawEvent>
             .HasColumnName("processing_error")
             .HasMaxLength(1000);
 
+        builder.Property(rawEvent => rawEvent.IsProcessable)
+            .HasColumnName("is_processable")
+            .HasDefaultValue(true)
+            .IsRequired();
+
         builder.HasIndex(rawEvent => rawEvent.TransactionId)
             .IsUnique()
+            .HasFilter("transaction_id IS NOT NULL")
             .HasDatabaseName("ix_raw_events_transaction_id");
 
         builder.HasIndex(rawEvent => rawEvent.ContractId)

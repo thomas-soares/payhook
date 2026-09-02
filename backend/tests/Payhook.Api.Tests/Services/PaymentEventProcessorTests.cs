@@ -66,6 +66,32 @@ public sealed class PaymentEventProcessorTests
     }
 
     [Fact]
+    public async Task ProcessAsyncShouldIgnoreUnprocessableRawEvents()
+    {
+        await using var context = CreateContext();
+        var rawEvent = new RawEvent
+        {
+            Id = Guid.NewGuid(),
+            TransactionId = null,
+            ContractId = null,
+            PayloadJson = "{",
+            ReceivedAt = DateTimeOffset.UtcNow,
+            ProcessingStatus = ProcessingStatus.Failed,
+            ProcessingError = "Invalid JSON payload.",
+            IsProcessable = false
+        };
+        context.RawEvents.Add(rawEvent);
+        await context.SaveChangesAsync(TestContext.Current.CancellationToken);
+        var processor = CreateProcessor(context);
+
+        await processor.ProcessAsync(rawEvent.Id, TestContext.Current.CancellationToken);
+
+        rawEvent.ProcessingStatus.Should().Be(ProcessingStatus.Failed);
+        rawEvent.ProcessingError.Should().Be("Invalid JSON payload.");
+        context.ContractStatuses.Should().BeEmpty();
+    }
+
+    [Fact]
     public async Task ProcessPendingAsyncShouldProcessOldestPendingRawEventsUpToBatchSize()
     {
         await using var context = CreateContext();
@@ -90,6 +116,35 @@ public sealed class PaymentEventProcessorTests
         newerRawEvent.ProcessingStatus.Should().Be(ProcessingStatus.Pending);
         context.ContractStatuses.Should().ContainSingle(contractStatus =>
             contractStatus.ContractId == "contract_001");
+    }
+
+    [Fact]
+    public async Task ProcessPendingAsyncShouldSkipUnprocessableRawEvents()
+    {
+        await using var context = CreateContext();
+        var rejectedRawEvent = new RawEvent
+        {
+            Id = Guid.NewGuid(),
+            PayloadJson = "{",
+            ReceivedAt = DateTimeOffset.UtcNow.AddMinutes(-2),
+            ProcessingStatus = ProcessingStatus.Pending,
+            ProcessingError = "Invalid JSON payload.",
+            IsProcessable = false
+        };
+        var processableRawEvent = CreateRawEvent(
+            Guid.NewGuid(),
+            "txn_001",
+            "contract_001",
+            DateTimeOffset.UtcNow.AddMinutes(-1));
+        context.RawEvents.AddRange(rejectedRawEvent, processableRawEvent);
+        await context.SaveChangesAsync(TestContext.Current.CancellationToken);
+        var processor = CreateProcessor(context);
+
+        var processedCount = await processor.ProcessPendingAsync(10, TestContext.Current.CancellationToken);
+
+        processedCount.Should().Be(1);
+        rejectedRawEvent.ProcessingStatus.Should().Be(ProcessingStatus.Pending);
+        processableRawEvent.ProcessingStatus.Should().Be(ProcessingStatus.Processed);
     }
 
     private static PaymentEventProcessor CreateProcessor(ApplicationDbContext context)

@@ -28,6 +28,13 @@ public sealed class PaymentWebhooksController(
 
         if (!securityService.IsValid(providedSignature, payloadJson))
         {
+            await webhookService.StoreRejectedAsync(
+                payloadJson,
+                "Invalid signature.",
+                transactionId: null,
+                contractId: null,
+                cancellationToken);
+
             return Unauthorized();
         }
 
@@ -39,16 +46,37 @@ public sealed class PaymentWebhooksController(
         }
         catch (JsonException)
         {
+            await webhookService.StoreRejectedAsync(
+                payloadJson,
+                "Invalid JSON payload.",
+                transactionId: null,
+                contractId: null,
+                cancellationToken);
+
             return BadRequest();
         }
 
         if (request is null)
         {
+            await webhookService.StoreRejectedAsync(
+                payloadJson,
+                "Empty JSON payload.",
+                transactionId: null,
+                contractId: null,
+                cancellationToken);
+
             return BadRequest();
         }
 
         if (!TryValidateRequest(request, out var validationResults))
         {
+            await webhookService.StoreRejectedAsync(
+                payloadJson,
+                BuildValidationErrorMessage(validationResults),
+                request.TransactionId,
+                request.ContractId,
+                cancellationToken);
+
             return BadRequest(new ValidationProblemDetails(ToValidationErrors(validationResults)));
         }
 
@@ -96,5 +124,13 @@ public sealed class PaymentWebhooksController(
             .ToDictionary(
                 group => group.Key,
                 group => group.Select(error => error.ErrorMessage).ToArray());
+    }
+
+    private static string BuildValidationErrorMessage(IEnumerable<ValidationResult> validationResults)
+    {
+        return string.Join(
+            " ",
+            validationResults.Select(validationResult =>
+                validationResult.ErrorMessage ?? "The request is invalid."));
     }
 }
