@@ -59,13 +59,15 @@ describe("PaymentTable", () => {
     renderTable([
       createPaymentSummary({
         amount: null,
+        contractId: null,
+        transactionId: null,
         paymentStatus: null
       })
     ]);
 
-    const row = screen.getByRole("row", { name: /sucesso tx-001 contract-001/i });
+    const row = screen.getByRole("row", { name: /sucesso/i });
 
-    expect(within(row).getAllByText("--")).toHaveLength(3);
+    expect(within(row).getAllByText("--")).toHaveLength(5);
   });
 
   it("emits failed payment selection", () => {

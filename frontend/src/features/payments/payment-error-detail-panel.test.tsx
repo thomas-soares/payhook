@@ -51,6 +51,24 @@ describe("PaymentErrorDetailPanel", () => {
     expect(await screen.findByText("{invalid")).toBeInTheDocument();
   });
 
+  it("uses placeholders for missing identifiers", async () => {
+    server.use(
+      http.get("*/api/payments/payment-id", () =>
+        HttpResponse.json(
+          createPaymentDetail({
+            contractId: null,
+            id: "payment-id",
+            transactionId: null
+          })
+        )
+      )
+    );
+
+    renderWithQueryClient(<PaymentErrorDetailPanel onClose={vi.fn()} paymentId="payment-id" />);
+
+    expect(await screen.findAllByText("--")).toHaveLength(2);
+  });
+
   it("renders a detail loading error", async () => {
     server.use(http.get("*/api/payments/payment-id", () => HttpResponse.json({}, { status: 500 })));
 

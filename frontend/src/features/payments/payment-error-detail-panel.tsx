@@ -50,8 +50,8 @@ export function PaymentErrorDetailPanel({ onClose, paymentId }: PaymentErrorDeta
         {detailQuery.data ? (
           <div className="detail-content">
             <div className="detail-grid">
-              <DetailItem label="Transacao" value={detailQuery.data.transactionId} />
-              <DetailItem label="Contrato" value={detailQuery.data.contractId} />
+              <DetailItem label="Transacao" value={detailQuery.data.transactionId ?? "--"} />
+              <DetailItem label="Contrato" value={detailQuery.data.contractId ?? "--"} />
               <DetailItem label="Valor" value={formatAmount(detailQuery.data.amount)} />
               <DetailItem label="Recebido em" value={formatDate(detailQuery.data.receivedAt)} />
             </div>

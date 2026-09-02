@@ -4,8 +4,8 @@ export type PaymentStatusFilter = "all" | "Processed" | "Failed";
 
 export type PaymentSummary = {
   id: string;
-  transactionId: string;
-  contractId: string;
+  transactionId: string | null;
+  contractId: string | null;
   processingStatus: ProcessingStatus;
   receivedAt: string;
   paymentStatus: string | null;

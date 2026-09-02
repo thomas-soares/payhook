@@ -41,8 +41,8 @@ export function PaymentTable({ isLoading, onSelectError, payments, viewedErrorId
               <td>
                 <PaymentStatusBadge status={payment.processingStatus} />
               </td>
-              <td className="mono">{payment.transactionId}</td>
-              <td className="mono">{payment.contractId}</td>
+              <td className="mono">{payment.transactionId ?? "--"}</td>
+              <td className="mono">{payment.contractId ?? "--"}</td>
               <td>{formatAmount(payment.amount)}</td>
               <td>{payment.paymentStatus ?? "--"}</td>
               <td>{formatDate(payment.receivedAt)}</td>
