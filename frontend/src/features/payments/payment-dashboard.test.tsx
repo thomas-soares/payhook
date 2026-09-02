@@ -4,7 +4,7 @@ import { describe, expect, it } from "vitest";
 import { renderWithQueryClient } from "@/test/render";
 import { server } from "@/test/server";
 import { PaymentDashboard } from "./payment-dashboard";
-import { createPaymentSummary } from "./test-data";
+import { createPaymentDetail, createPaymentSummary } from "./test-data";
 
 function renderDashboard() {
   return renderWithQueryClient(<PaymentDashboard pollIntervalMs={false} />);
@@ -125,5 +125,61 @@ describe("PaymentDashboard", () => {
 
     expect(within(row).getByText("Erro")).toBeInTheDocument();
     expect(screen.getByText("Com erro")).toBeInTheDocument();
+  });
+
+  it("opens failed payment detail and marks the error as viewed", async () => {
+    server.use(
+      http.get("*/api/payments", () =>
+        HttpResponse.json({
+          items: [
+            createPaymentSummary({
+              amount: null,
+              contractId: "contract-err",
+              id: "dd974fab-914d-4081-83a4-108a207b2fe1",
+              paymentDate: null,
+              paymentStatus: null,
+              processingError: "Invalid status",
+              transactionId: "tx-error",
+              processingStatus: "Failed"
+            })
+          ],
+          page: 1,
+          pageSize: 20,
+          totalItems: 1,
+          totalPages: 1
+        })
+      ),
+      http.get("*/api/payments/dd974fab-914d-4081-83a4-108a207b2fe1", () =>
+        HttpResponse.json(
+          createPaymentDetail({
+            amount: null,
+            contractId: "contract-err",
+            id: "dd974fab-914d-4081-83a4-108a207b2fe1",
+            paymentDate: null,
+            paymentStatus: null,
+            payloadJson: "{\"id_transacao\":\"tx-error\"}",
+            processingError: "Invalid status",
+            transactionId: "tx-error",
+            processingStatus: "Failed"
+          })
+        )
+      )
+    );
+
+    renderDashboard();
+
+    expect(await screen.findByText("1 erro ainda nao visualizado")).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "Ver erro" }));
+
+    expect(await screen.findByText("Invalid status")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Visto" })).toBeInTheDocument();
+    expect(screen.queryByText("1 erro ainda nao visualizado")).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "Fechar detalhe" }));
+
+    await waitFor(() => {
+      expect(screen.queryByLabelText("Detalhe do erro")).not.toBeInTheDocument();
+    });
   });
 });

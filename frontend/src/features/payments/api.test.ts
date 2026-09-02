@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { fetchPayments } from "./api";
+import { fetchPaymentDetail, fetchPayments } from "./api";
 
 describe("fetchPayments", () => {
   afterEach(() => {
@@ -37,6 +37,49 @@ describe("fetchPayments", () => {
 
     await expect(fetchPayments({ contractId: "", status: "all" })).rejects.toThrow(
       "Nao foi possivel carregar os pagamentos."
+    );
+  });
+});
+
+describe("fetchPaymentDetail", () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it("fetches a payment detail by id", async () => {
+    const fetchMock = vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          id: "payment-id",
+          transactionId: "tx-001",
+          contractId: "contract-001",
+          processingStatus: "Failed",
+          receivedAt: "2026-09-01T18:00:00Z",
+          payloadJson: "{}",
+          paymentStatus: null,
+          amount: null,
+          paymentDate: null,
+          updatedAt: null,
+          processingError: "Invalid status"
+        }),
+        { status: 200 }
+      )
+    );
+
+    await fetchPaymentDetail("payment-id");
+
+    expect(fetchMock).toHaveBeenCalledWith("/api/payments/payment-id", {
+      headers: {
+        Accept: "application/json"
+      }
+    });
+  });
+
+  it("throws when the detail request fails", async () => {
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(new Response(null, { status: 404 }));
+
+    await expect(fetchPaymentDetail("missing-id")).rejects.toThrow(
+      "Nao foi possivel carregar o detalhe do pagamento."
     );
   });
 });
