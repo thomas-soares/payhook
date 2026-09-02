@@ -15,7 +15,12 @@ export default defineConfig({
         "src/**/*.test.tsx",
         "src/**/*.d.ts"
       ],
-      include: ["src/components/**/*.{ts,tsx}", "src/features/**/*.{ts,tsx}", "src/lib/**/*.{ts,tsx}"],
+      include: [
+        "src/components/**/*.{ts,tsx}",
+        "src/features/**/*.{ts,tsx}",
+        "src/lib/**/*.{ts,tsx}",
+        "src/server/**/*.{ts,tsx}"
+      ],
       provider: "v8",
       reporter: ["text", "html", "lcov"],
       thresholds: {
