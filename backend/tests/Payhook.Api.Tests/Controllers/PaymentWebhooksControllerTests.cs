@@ -156,6 +156,35 @@ public sealed class PaymentWebhooksControllerTests
             && !rawEvent.IsProcessable);
     }
 
+    [Fact]
+    public async Task ReceiveShouldStoreRejectedRawEventWhenPaymentDateIsMissing()
+    {
+        await using var factory = new PayhookApiFactory();
+        var client = factory.CreateClient();
+        const string payloadJson = """
+            {"transaction_id":"txn_001","contract_id":"contract_001","amount":10.50,"status":"Paid"}
+            """;
+        client.DefaultRequestHeaders.Add(
+            "X-Signature",
+            WebhookSecurityService.ComputeSignature(payloadJson, "test-secret"));
+
+        var response = await client.PostAsync(
+            "/webhooks/payment",
+            CreateJsonContent(payloadJson),
+            TestContext.Current.CancellationToken);
+
+        response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+        var rawEvents = ReadRawEvents(factory);
+        rawEvents.Should().ContainSingle(rawEvent =>
+            rawEvent.TransactionId == "txn_001"
+            && rawEvent.ContractId == "contract_001"
+            && rawEvent.PayloadJson == payloadJson
+            && rawEvent.ProcessingStatus == ProcessingStatus.Failed
+            && rawEvent.ProcessingError!.Contains("PaymentDate")
+            && rawEvent.ProcessingError!.Contains("required")
+            && !rawEvent.IsProcessable);
+    }
+
     private static StringContent CreateJsonContent(string? payloadJson = null)
     {
         return new StringContent(

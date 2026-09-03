@@ -66,6 +66,32 @@ public sealed class PaymentEventProcessorTests
     }
 
     [Fact]
+    public async Task ProcessAsyncShouldNotCreateContractStatusWhenPaymentDateIsMissing()
+    {
+        await using var context = CreateContext();
+        var rawEvent = new RawEvent
+        {
+            Id = Guid.NewGuid(),
+            TransactionId = "txn_001",
+            ContractId = "contract_001",
+            PayloadJson = """
+                {"transaction_id":"txn_001","contract_id":"contract_001","amount":10.50,"status":"Paid"}
+                """,
+            ReceivedAt = DateTimeOffset.UtcNow,
+            ProcessingStatus = ProcessingStatus.Pending
+        };
+        context.RawEvents.Add(rawEvent);
+        await context.SaveChangesAsync(TestContext.Current.CancellationToken);
+        var processor = CreateProcessor(context);
+
+        await processor.ProcessAsync(rawEvent.Id, TestContext.Current.CancellationToken);
+
+        rawEvent.ProcessingStatus.Should().Be(ProcessingStatus.Failed);
+        rawEvent.ProcessingError.Should().Be("Payment date is required.");
+        context.ContractStatuses.Should().BeEmpty();
+    }
+
+    [Fact]
     public async Task ProcessAsyncShouldIgnoreUnprocessableRawEvents()
     {
         await using var context = CreateContext();

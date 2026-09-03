@@ -17,8 +17,9 @@ public sealed class PaymentWebhookRequest
     [JsonPropertyName("amount")]
     public decimal Amount { get; init; }
 
+    [Required]
     [JsonPropertyName("payment_date")]
-    public DateTimeOffset PaymentDate { get; init; }
+    public DateTimeOffset? PaymentDate { get; init; }
 
     [Required]
     [JsonPropertyName("status")]

@@ -94,7 +94,8 @@ public sealed class PaymentEventProcessor(
                 ContractId = payment.ContractId,
                 Status = payment.Status,
                 Amount = payment.Amount,
-                PaymentDate = payment.PaymentDate,
+                PaymentDate = payment.PaymentDate
+                    ?? throw new InvalidOperationException("Payment date is required."),
                 UpdatedAt = DateTimeOffset.UtcNow
             });
 
@@ -103,7 +104,8 @@ public sealed class PaymentEventProcessor(
 
         contractStatus.Status = payment.Status;
         contractStatus.Amount = payment.Amount;
-        contractStatus.PaymentDate = payment.PaymentDate;
+        contractStatus.PaymentDate = payment.PaymentDate
+            ?? throw new InvalidOperationException("Payment date is required.");
         contractStatus.UpdatedAt = DateTimeOffset.UtcNow;
     }
 }
