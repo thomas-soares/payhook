@@ -33,6 +33,8 @@ cp .env.example .env
 docker compose up --build
 ```
 
+In `Development`, the backend applies EF Core migrations during startup when it uses a relational database provider. This keeps an existing local Docker volume aligned with the current schema.
+
 3. Run the frontend outside Docker Compose:
 
 ```bash
@@ -52,6 +54,39 @@ pnpm format
 ```bash
 dotnet test backend/tests/Payhook.Api.Tests
 ```
+
+## Webhook Testing
+
+The webhook endpoint validates `X-Signature` as an HMAC SHA-256 signature using `WEBHOOK_SIGNATURE_SECRET`.
+
+Expected responses:
+
+- `202 Accepted`: first valid delivery saved for background processing
+- `200 OK`: duplicate `transaction_id` already received
+- `400 Bad Request`: invalid JSON or payload validation error
+- `401 Unauthorized`: missing or invalid signature
+
+Example payload:
+
+```json
+{"transaction_id":"txn_manual_001","contract_id":"contract_manual_001","amount":10.50,"payment_date":"2026-09-01T00:00:00Z","status":"Paid"}
+```
+
+PowerShell example:
+
+```powershell
+$secret = "dev-payhook-secret"
+$payload = '{"transaction_id":"txn_manual_001","contract_id":"contract_manual_001","amount":10.50,"payment_date":"2026-09-01T00:00:00Z","status":"Paid"}'
+$key = [Text.Encoding]::UTF8.GetBytes($secret)
+$bytes = [Text.Encoding]::UTF8.GetBytes($payload)
+$hmac = [Security.Cryptography.HMACSHA256]::new($key)
+$signature = "sha256=" + (($hmac.ComputeHash($bytes) | ForEach-Object { $_.ToString("x2") }) -join "")
+Invoke-WebRequest -Uri "http://localhost:5000/webhooks/payment" -Method Post -ContentType "application/json" -Body $payload -Headers @{ "X-Signature" = $signature }
+```
+
+Send the same payload again to validate idempotency. The second response should be `200 OK`.
+
+You can also import `collections/payhook.postman_collection.json` into Postman. It includes valid, duplicate, invalid signature, invalid JSON, validation error, and query examples.
 
 ## Background Processing
 
