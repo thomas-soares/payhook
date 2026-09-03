@@ -1,0 +1,303 @@
+{
+  "info": {
+    "_postman_id": "8e1c04e3-8894-46a8-8e3f-4ef83a7f1a2d",
+    "name": "Payhook API",
+    "description": "Manual validation collection for payment webhook success, duplicate, validation errors, and payment queries.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "if (pm.request.body && pm.request.body.mode === 'raw' && !pm.variables.get('skip_signature')) {",
+          "  const payload = pm.request.body.raw;",
+          "  const secret = pm.variables.get('signature_secret') || 'dev-payhook-secret';",
+          "  const signature = 'sha256=' + CryptoJS.HmacSHA256(payload, secret).toString(CryptoJS.enc.Hex);",
+          "  pm.request.headers.upsert({ key: 'X-Signature', value: signature });",
+          "}",
+          "pm.variables.unset('skip_signature');"
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:5000"
+    },
+    {
+      "key": "signature_secret",
+      "value": "dev-payhook-secret"
+    },
+    {
+      "key": "transaction_id",
+      "value": "txn_postman_001"
+    },
+    {
+      "key": "contract_id",
+      "value": "contract_postman_001"
+    }
+  ],
+  "item": [
+    {
+      "name": "Health Check",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{base_url}}/health"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('returns 200', () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Webhook - Valid Payment",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"transaction_id\":\"{{transaction_id}}\",\"contract_id\":\"{{contract_id}}\",\"amount\":10.50,\"payment_date\":\"2026-09-01T00:00:00Z\",\"status\":\"Paid\"}"
+        },
+        "url": "{{base_url}}/webhooks/payment"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('returns 202 on first delivery', () => pm.response.to.have.status(202));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Webhook - Duplicate Payment",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"transaction_id\":\"{{transaction_id}}\",\"contract_id\":\"{{contract_id}}\",\"amount\":10.50,\"payment_date\":\"2026-09-01T00:00:00Z\",\"status\":\"Paid\"}"
+        },
+        "url": "{{base_url}}/webhooks/payment"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('returns 200 for duplicate delivery', () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Webhook - Invalid Signature",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.request.headers.upsert({ key: 'X-Signature', value: 'sha256=invalid' });"
+            ]
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('returns 401', () => pm.response.to.have.status(401));"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-Signature",
+            "value": "sha256=invalid"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"transaction_id\":\"txn_bad_signature\",\"contract_id\":\"contract_bad_signature\",\"amount\":10.50,\"payment_date\":\"2026-09-01T00:00:00Z\",\"status\":\"Paid\"}"
+        },
+        "url": "{{base_url}}/webhooks/payment"
+      }
+    },
+    {
+      "name": "Webhook - Invalid JSON",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{"
+        },
+        "url": "{{base_url}}/webhooks/payment"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('returns 400', () => pm.response.to.have.status(400));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Webhook - Validation Error",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"transaction_id\":\"txn_invalid_amount\",\"contract_id\":\"contract_invalid_amount\",\"amount\":0,\"payment_date\":\"2026-09-01T00:00:00Z\",\"status\":\"Paid\"}"
+        },
+        "url": "{{base_url}}/webhooks/payment"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('returns 400', () => pm.response.to.have.status(400));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Webhook - Missing Payment Date",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"transaction_id\":\"txn_missing_payment_date\",\"contract_id\":\"contract_missing_payment_date\",\"amount\":10.50,\"status\":\"Paid\"}"
+        },
+        "url": "{{base_url}}/webhooks/payment"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('returns 400', () => pm.response.to.have.status(400));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Payments - List",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{base_url}}/payments?page=1&pageSize=20"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('returns 200', () => pm.response.to.have.status(200));",
+              "pm.test('returns paginated items', () => pm.expect(pm.response.json()).to.have.property('items'));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Payments - Filter By Contract",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{base_url}}/payments?page=1&pageSize=20&contract_id={{contract_id}}"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('returns 200', () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Payments - Filter By Error Status",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{base_url}}/payments?page=1&pageSize=20&status=Failed"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('returns 200', () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}
