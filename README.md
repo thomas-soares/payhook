@@ -88,6 +88,44 @@ Send the same payload again to validate idempotency. The second response should 
 
 You can also import `collections/payhook.postman_collection.json` into Postman. It includes valid, duplicate, invalid signature, invalid JSON, validation error, and query examples.
 
+## Demo Environment
+
+- Frontend: `https://payhook-frontend.vercel.app/`
+- Backend health check: `https://payhook-backend.onrender.com/health`
+- Backend Swagger UI: `https://payhook-backend.onrender.com/swagger`
+
+The backend is hosted on Render's free tier, so the first request after a period of inactivity can take longer while the service wakes up.
+
+## Deployment Notes
+
+Render backend environment variables:
+
+```text
+ASPNETCORE_ENVIRONMENT=Development
+ASPNETCORE_URLS=http://+:10000
+ConnectionStrings__DefaultConnection=<render-postgres-connection-string>
+WebhookSecurity__SignatureSecret=<webhook-signature-secret>
+DOTNET_USE_POLLING_FILE_WATCHER=true
+DOTNET_hostBuilder__reloadConfigOnChange=false
+PaymentProcessing__ProcessingDelay=00:00:02
+PaymentProcessing__QueueCapacity=1000
+PaymentProcessing__PendingScanInterval=00:00:10
+PaymentProcessing__PendingBatchSize=50
+```
+
+Vercel frontend environment variables:
+
+```text
+PAYHOOK_API_BASE_URL=https://payhook-backend.onrender.com
+```
+
+Postman manual validation:
+
+1. Import `collections/payhook.postman_collection.json`.
+2. Set `base_url` to `https://payhook-backend.onrender.com`.
+3. Set `signature_secret` to the same value configured in Render.
+4. Run `Health Check`, `Webhook - Valid Payment`, `Webhook - Duplicate Payment`, and `Payments - List`.
+
 ## Background Processing
 
 The API stores each accepted webhook in PostgreSQL before returning `202 Accepted`. New events are pushed to a bounded in-memory `Channel`, and a hosted worker processes them outside the request path after the configured delay.
