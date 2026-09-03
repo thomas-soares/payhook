@@ -70,6 +70,20 @@ describe("PaymentTable", () => {
     expect(within(row).getAllByText("--")).toHaveLength(5);
   });
 
+  it("shortens long identifiers while preserving the full value as a title", () => {
+    const transactionId = "valerr_20260902095957_duplicate";
+    const contractId = "contract_valerr_20260902095957_duplicate";
+    renderTable([
+      createPaymentSummary({
+        contractId,
+        transactionId
+      })
+    ]);
+
+    expect(screen.getByText("valerr_20260...uplicate")).toHaveAttribute("title", transactionId);
+    expect(screen.getByText("contract_val...uplicate")).toHaveAttribute("title", contractId);
+  });
+
   it("emits failed payment selection", () => {
     const { onSelectError } = renderTable([
       createPaymentSummary({

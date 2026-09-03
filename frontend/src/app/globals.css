@@ -220,12 +220,38 @@ h1 {
 
 table {
   width: 100%;
-  min-width: 860px;
+  min-width: 760px;
+  table-layout: fixed;
   border-collapse: collapse;
+}
+
+.status-column {
+  width: 126px;
+}
+
+.identifier-column {
+  width: 25%;
+}
+
+.amount-column {
+  width: 96px;
+}
+
+.payment-column {
+  width: 100px;
+}
+
+.date-column {
+  width: 158px;
+}
+
+.detail-column {
+  width: 104px;
 }
 
 th,
 td {
+  overflow: hidden;
   padding: 14px 16px;
   border-bottom: 1px solid var(--border);
   text-align: left;
@@ -248,6 +274,13 @@ tbody tr:last-child td {
 .mono {
   font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
   font-size: 0.875rem;
+}
+
+.compact-id {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .status-badge {
